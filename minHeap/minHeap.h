@@ -1,10 +1,12 @@
+#pragma once
 #include <cstring>
+#include <iostream>
+
+#define DEFAULT_SIZE  10
+
 template <class T>
 class MinHeap {
-	const int DEFAULT_SIZE = 10;
 	T *data;
-	int head;
-	int tail;
 	int size;
 	void shiftDown(int start, int m) {
 		int j = start * 2 + 1;
@@ -16,7 +18,7 @@ class MinHeap {
 			start = j;
 			j = j * 2 + 1;
 		}
-		data[j] = temp;
+		data[start] = temp;
 	}
 	void shiftUp(int start) {
 		int i = (start - 1) / 2;
@@ -27,24 +29,31 @@ class MinHeap {
 			start = i;
 			i = (i - 1) / 2;
 		}
-		data[i] = temp;
+		data[start] = temp;
+	}
+	void dfs(std::ostream &o, int index, int level = 0) {
+		if (index >= size) return;
+		o.width(level * 6);
+		o << data[index] << std::endl;
+		dfs(o, index * 2 + 1, level + 1);
+		dfs(o, index * 2 + 2, level + 1);
 	}
 public:
-	MinHeap(int sz = DEFAULT_SIZE) : head(0), tail(0), size(sz) {
+	~MinHeap() {
+		delete [] data;
+	}
+	MinHeap(int sz = DEFAULT_SIZE) : size(sz) {
 		data = new T[sz];
 	}
 
-	MinHeap(T arr[], int n) : head(0), tail(n - 1), size(n) {
-		data = new T[n];
-		memcpy(data, T, n);
+	MinHeap(T arr[], int n) : size(n) {
+		data = new T[n * 2];
+		memcpy(data, arr, n * sizeof(T));
 		int currentPos = (n - 2) / 2;
 		while (currentPos >= 0) {
 			shiftDown(currentPos, n - 1);
 			--currentPos;
 		}
-	}
-	~MinHeap() {
-		delete [] data;
 	}
 	void insert(const T &x) {
 		data[size] = x;
@@ -62,4 +71,8 @@ public:
 	void empty() {
 		size = 0;
 	}
-}
+	friend std::ostream &operator <<(std::ostream &o, MinHeap<T> &heap) {
+		heap.dfs(o, 0);
+		return o;
+	}
+};
