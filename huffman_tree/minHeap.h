@@ -23,7 +23,7 @@ class MinHeap {
 	void shiftUp(int start) {
 		int i = (start - 1) / 2;
 		T temp = data[start];
-		while (i >= 0) {
+		while (start > 0) {
 			if (temp >= data[i]) break;
 			data[start] = data[i];
 			start = i;
@@ -62,6 +62,7 @@ public:
 	}
 	void removeMin(T &x) {
 		x = data[0];
+		data[0] = data[--size];
 		data[0] = data[--size];
 		shiftDown(0, size - 1);
 	}
