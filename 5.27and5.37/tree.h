@@ -78,6 +78,7 @@ public:
 			nodes[i] = new TreeNode<T>(arr[i], l, r);
 		}
 		root = nodes[0];
+		delete [] nodes;
 	}
 
 	int countDegree(int degree = 1, TreeNode<T> *p = NULL) {
