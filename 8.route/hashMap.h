@@ -1,6 +1,5 @@
 #pragma once
 #include <iostream>
-using namespace std;
 
 #define DEFAULT_SIZE 20
 
@@ -36,7 +35,6 @@ public:
 			return &value;
 		}
 		int i = hashf(k, divitor);
-		//cout << i << endl;
 		if (i >= size) return NULL;
 		if (table[i])
 			return table[i]->find(k);
@@ -46,7 +44,6 @@ public:
 		int i = hashf(k, divitor);
 		if (find(k)) return false;
 		if (i >= size) return false;
-		cout <<i << endl;
 		if (table[i]) {
 			if (table[i]->isValue) {
 				// Value
@@ -69,11 +66,11 @@ public:
 	}
 	void dfs(int level = 0) {
 		if (isValue) {
-			cout << "level: " << level << " -- "<< key << ": " << value << endl;
+			std::cout << "level: " << level << " -- "<< key << ": " << value << std::endl;
 		}
 		for (int i = 0; i < size; ++i) {
 			if (table[i]) {
-				cout << "level " <<level<< ", enter "<< i << endl;
+				//std::cout << "level " <<level<< ", enter "<< i << std::endl;
 				table[i]->dfs(level + 1);
 			}
 		}

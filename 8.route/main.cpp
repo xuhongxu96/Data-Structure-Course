@@ -1,8 +1,23 @@
 #include <iostream>
 #include <cstring>
+#include "hashMap.h"
 using namespace std;
 
 const int N = 16;
+
+int hashf(const char *const &k, int d) {
+	int ret = 0;
+	for (int i = 0; k[i]; ++i) {
+		if (k[i] < 0) ret += -k[i] % d;
+		else ret += k[i] % d;
+		ret <<= d;
+	}
+	return ret % d;
+}
+
+bool equalf(const char *const &k, const char *const &k2) {
+	return strcmp(k, k2) == 0;
+}
 
 struct Flight {
 	char id[10], start[20], end[20];
@@ -45,8 +60,18 @@ const Flight flights[N] = {
 	Flight( "4723" , "广州"     , "武汉"     , time(11, 25) , time(13, 5 ) , 810  )
 };
 
-const char *cities[] = {"北京", "上海", "乌鲁木齐", "拉萨", "广州", "西安", "昆明", "武汉"};
+
+HashMap<const char *, int> map(hashf, equalf);
+
+void mapCities() {
+	for (int i = 0, j = 0; i < N; ++i) {
+		if (map.insert(flights[i].start, j)) ++j;
+	}
+}
 
 int main() {
+	mapCities();
+	map.dfs();
+	cout << *map.find("广州") << endl;
 	return 0;
 }
