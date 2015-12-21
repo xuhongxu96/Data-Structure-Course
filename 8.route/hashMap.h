@@ -1,7 +1,9 @@
 #pragma once
 #include <iostream>
 
-#define DEFAULT_SIZE 20
+#ifndef DEFAULT_SIZE
+#define DEFAULT_SIZE  20
+#endif
 
 /*
  *
@@ -20,7 +22,7 @@ class HashMap {
 public:
 	typedef int (*Hash)(const E &k, int d);
 	typedef bool (*Equal)(const E &k, const E &k2);
-	HashMap(Hash hashFunc, Equal equalFunc, int d = 13, int sz = DEFAULT_SIZE) 
+	HashMap(Hash hashFunc, Equal equalFunc, int d = 19, int sz = DEFAULT_SIZE) 
 		: divitor(d), size(sz), length(0),
 		  table(NULL), isValue(false),
 		  hashf(hashFunc), equalf(equalFunc) {
@@ -70,7 +72,7 @@ public:
 		}
 		for (int i = 0; i < size; ++i) {
 			if (table[i]) {
-				//std::cout << "level " <<level<< ", enter "<< i << std::endl;
+				std::cout << "level " <<level<< ", enter "<< i << std::endl;
 				table[i]->dfs(level + 1);
 			}
 		}
