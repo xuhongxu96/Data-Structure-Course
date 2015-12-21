@@ -10,6 +10,9 @@ Homework
 ---
 1. Chapter 2 - 2.14, 2.17, 2.5
 2. Chapter 3 - 3.17, 3.18, 3.maze   
-    3.maze = **queue** / **stack** / **recursion** implementation of maze problem
+    3.maze = **queue** / **stack** / **recursion** implementation of maze problem.
 3. Chapter 5 - 5.27 & 5.37, huffmanTree   
 	5.27 and 5.37 have been merged in one solution.
+4. Chapter 8 - Route Plan (Graph & Dijkstra)   
+	I also wrote a HashMap to map *City Name* to **Integer**.   
+	I also also added **Foreach** function to the ChainList.
