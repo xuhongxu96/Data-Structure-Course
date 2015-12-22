@@ -1,9 +1,14 @@
 #pragma once
 #include <iostream>
 
-#define DEFAULT_SIZE 20
+#ifndef DEFAULT_SIZE
+#define DEFAULT_SIZE  20
+#endif
 
 /*
+ *
+ * updated:
+ * dfs returns Count of Elemetns.
  *
  * 本宝宝 的『散列表的散列表』
  * 结合 开散列方法 和 双散列法
@@ -26,6 +31,7 @@ int hashf(const char *const &k, int d) {
 		else ret += k[i] % d;
 		ret <<= d;
 	}
+	if (ret < 0) ret = -ret;
 	return ret % d;
 }
 
@@ -39,7 +45,7 @@ class HashMap {
 public:
 	typedef int (*Hash)(const E &k, int d);
 	typedef bool (*Equal)(const E &k, const E &k2);
-	HashMap(Hash hashFunc, Equal equalFunc, int d = 13, int sz = DEFAULT_SIZE) 
+	HashMap(Hash hashFunc, Equal equalFunc, int d = 19, int sz = DEFAULT_SIZE) 
 		: divitor(d), size(sz), length(0),
 		  table(NULL), isValue(false),
 		  hashf(hashFunc), equalf(equalFunc) {
@@ -54,7 +60,6 @@ public:
 			return &value;
 		}
 		int i = hashf(k, divitor);
-		//cout << i << endl;
 		if (i >= size) return NULL;
 		if (table[i])
 			return table[i]->find(k);
@@ -64,6 +69,7 @@ public:
 		int i = hashf(k, divitor);
 		if (find(k)) return false;
 		if (i >= size) return false;
+		//std::cout << i << std::endl;
 		if (table[i]) {
 			if (table[i]->isValue) {
 				// Value
@@ -84,16 +90,19 @@ public:
 		}
 		return true;
 	}
-	void dfs(int level = 0) {
+	int dfs(int level = 0) {
 		if (isValue) {
 			std::cout << "level: " << level << " -- "<< key << ": " << value << std::endl;
+			return 1;
 		}
+		int t = 0;
 		for (int i = 0; i < size; ++i) {
 			if (table[i]) {
 				std::cout << "level " <<level<< ", enter "<< i << std::endl;
-				table[i]->dfs(level + 1);
+				t += table[i]->dfs(level + 1);
 			}
 		}
+		return t;
 	}
 protected:
 	int divitor;

@@ -15,23 +15,6 @@ const int N = 16;
 const int M = N * (N - 1) / 2;
 
 /*
- * HashMap Functions
- *
- */
-int hashf(const char *const &k, int d) {
-	int ret = 0;
-	for (int i = 0; k[i]; ++i) {
-		if (k[i] < 0) ret += -k[i] % d;
-		else ret += k[i] % d;
-	}
-	return ret ? ret % d : 0;
-}
-
-bool equalf(const char *const &k, const char *const &k2) {
-	return strcmp(k, k2) == 0;
-}
-
-/*
  * Flight Structure
  * and Data
  *

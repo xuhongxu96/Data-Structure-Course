@@ -16,6 +16,25 @@
  *
  */
 
+int val(const int *p) {
+	if (p) return *p;
+	return -1;
+}
+
+int hashf(const char *const &k, int d) {
+	int ret = 0;
+	for (int i = 0; k[i]; ++i) {
+		if (k[i] < 0) ret += -k[i] % d;
+		else ret += k[i] % d;
+		ret <<= d;
+	}
+	return ret % d;
+}
+
+bool equalf(const char *const &k, const char *const &k2) {
+	return strcmp(k, k2) == 0;
+}
+
 
 template <class E, class K>
 class HashMap {
