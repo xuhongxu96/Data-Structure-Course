@@ -1,4 +1,6 @@
 #pragma once
+#include <cstring>
+#include <algorithm>
 
 #ifndef DEFAULT_SIZE
 #define DEFAULT_SIZE 30
@@ -12,6 +14,12 @@ public:
 	}
 	SeqList(int sz = DEFAULT_SIZE) : size(sz), length(0) {
 		data = new T[size];
+	}
+	SeqList(SeqList &list) {
+		size = list.size;
+		length = list.length;
+		data = new T[size];
+		memcpy(data, list.data, size * sizeof(T));
 	}
 	void insert(const T &x) {
 		if (length >= size) {
@@ -28,6 +36,10 @@ public:
 	}
 	int getLength() {
 		return length;
+	}
+	void sort(bool (*cmp)(const T &, const T &), int l = 0, int r = -1) {
+		if (r == -1) r = length;
+		std::sort(data + l, data + r, cmp);
 	}
 	T &operator [](int index) {
 		return data[index];

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <cstring>
+#include <algorithm>
 #include "SeqList.h"
 #include "hashMap.h"
 using namespace std;
@@ -41,22 +42,24 @@ struct AirQuality {
 	}
 };
 
+SeqList<AirQuality> qualities;
+
 struct RecordPointer {
 	int start, end;
 	RecordPointer(int s, int e) : start(s), end(e) {}
 	RecordPointer() : start(-1), end(0) {}
-	friend ostream &operator <<(ostream &o, RecordPointer &rp) {
-		o << "(";
-		o << rp.start << ", " << rp.end;
-		o << ")" << endl;
+	friend ostream &operator <<(ostream &o, RecordPointer rp) {
+		for (int i = rp.start; i <= rp.end; ++i) {
+			cout << qualities[i];
+		}
 		return o;
 	}
 };
 
-SeqList<AirQuality> qualities;
 HashMap<const char *, RecordPointer> map(hashf, equalf, 131, 300);
 HashMap<const char *, RecordPointer> mapById(hashf, equalf, 131, 300);
 int N = 0;
+
 
 
 void inputData() {
@@ -94,11 +97,12 @@ void mapCities() {
 	//cout << mapById.dfs() << endl;
 }
 
-bool findItem(int left, int right, int year, int month, int date, int &index) {
+bool findItem(int left, int right, int year, int month, int date, int &index, SeqList<AirQuality> *list) {
+	if (!list) list = &qualities;
 	int l = left, r = right + 1;
 	while (l < r) {
 		int mid = (l + r) >> 1;
-		AirQuality q = qualities[mid];
+		AirQuality q = (*list)[mid];
 		//cout << mid << " "<< q << endl;
 		if (q.year < year 
 				|| (q.year == year && (q.month < month 
@@ -117,41 +121,33 @@ bool findItem(int left, int right, int year, int month, int date, int &index) {
 	return false;
 }
 
-void findItemsByDate(int left, int right, int year, int month = 0, int date = 0) {
+RecordPointer findItemsByDate(int left, int right, int year, int month = 0, int date = 0, SeqList<AirQuality> *list = NULL) {
+	int s, t;
 	if (month && date) {
-		int index;
-		if (findItem(left, right, year, month, date, index)) {
-			cout << qualities[index];
+		if (findItem(left, right, year, month, date, s, list)) {
+			t = s;
 		} else {
+			s = 0; t = -1;
 			cout << "未检索到此天记录！" << endl;
 		}
 	} else if (month && !date) {
-		int s, t;
-		findItem(left, right, year, month, 1, t);
-		findItem(left, right, year, month, 31, s);
-		for (int i = s; i <= t; ++i) {
-			cout << qualities[i];
-		}
+		findItem(left, right, year, month, 1, t, list);
+		findItem(left, right, year, month, 31, s, list);
 	} else {
-		int s, t;
-		findItem(left, right, year, 1, 1, t);
-		findItem(left, right, year, 12, 31, s);
-		for (int i = s; i <= t; ++i) {
-			cout << qualities[i];
-		}
+		findItem(left, right, year, 1, 1, t, list);
+		findItem(left, right, year, 12, 31, s, list);
 	}
+	return RecordPointer(s, t);
 }
 
-void findItemsBySeason(int left, int right, int year, int season) {
+RecordPointer findItemsBySeason(int left, int right, int year, int season, SeqList<AirQuality> *list = NULL) {
 	// season 1: 1 - 3; season 2: 4 - 6; season 3: 7 - 9; season 4: 10 - 12
 	int s, t;
 	int monthStart = season * 3 - 2;
 	int monthEnd = season * 3;
-	findItem(left, right, year, monthStart, 1, t);
-	findItem(left, right, year, monthEnd, 31, s);
-	for (int i = s; i <= t; ++i) {
-		cout << qualities[i];
-	}
+	findItem(left, right, year, monthStart, 1, t, list);
+	findItem(left, right, year, monthEnd, 31, s, list);
+	return RecordPointer(s, t);
 }
 
 bool isLeap(int year) {
@@ -171,43 +167,29 @@ int date2month(int &date, int year = 1) {
 	return 12;
 }
 
-void findItemsByWeek(int left, int right, int year, int week, int month = 0) {
+RecordPointer findItemsByWeek(int left, int right, int year, int week, int month = 0, SeqList<AirQuality> *list = NULL) {
 	int s, t;
 	if (month) {
-		findItem(left, right, year, month, week * 7 - 6, t);
-		findItem(left, right, year, month, week * 7, s);
+		findItem(left, right, year, month, week * 7 - 6, t, list);
+		findItem(left, right, year, month, week * 7, s, list);
 	} else {
 		int dateStart = week * 7 - 6;
 		int monthStart = date2month(dateStart);
 		int dateEnd = week * 7;
 		int monthEnd = date2month(dateEnd);
-		findItem(left, right, year, monthStart, dateStart, t);
-		findItem(left, right, year, monthEnd, dateEnd, s);
+		findItem(left, right, year, monthStart, dateStart, t, list);
+		findItem(left, right, year, monthEnd, dateEnd, s, list);
 	}
-	for (int i = s; i <= t; ++i) {
-		cout << qualities[i];
-	}
+	return RecordPointer(s, t);
 }
 
-void searchFunc() {
-	char city[30];
+RecordPointer getRange(RecordPointer rp, SeqList<AirQuality> *list = NULL) {
 	int method;
-	cout << "请输入城市名称：" << endl;
-	cin >> city;
 	cout << "请选择检索方式：\n\t1) 日期\n\t2) 季度\n\t3) 周数" << endl;
 	cin >> method;
 
-	RecordPointer *rp = NULL;
-	if (city[0] >= '0' && city[0] <= '9') {
-		rp = mapById.find(city);
-	} else {
-		rp = map.find(city);
-	}
-	if (!rp) {
-		cout << "未检索到城市！" << endl;
-		return;
-	}
 
+	RecordPointer range;
 	switch (method) {
 	case 1:
 		{
@@ -220,7 +202,7 @@ void searchFunc() {
 				cout << "请输入日期（全部则填0）：" << endl;
 				cin >> d;
 			}
-			findItemsByDate(rp->start, rp->end, y, m, d);
+			range = findItemsByDate(rp.start, rp.end, y, m, d, list);
 		}
 		break;
 	case 2:
@@ -230,7 +212,7 @@ void searchFunc() {
 			cin >> y;
 			cout << "请输入季度：" << endl;
 			cin >> s;
-			findItemsBySeason(rp->start, rp->end, y, s);
+			range = findItemsBySeason(rp.start, rp.end, y, s, list);
 		}
 		break;
 	case 3:
@@ -241,9 +223,47 @@ void searchFunc() {
 			cin >> m;
 			cout << "请输入周数：" << endl;
 			cin >> w;
-			findItemsByWeek(rp->start, rp->end, y, w, m);
+			range = findItemsByWeek(rp.start, rp.end, y, w, m, list);
 		break;
 	}
+	return range;
+}
+
+void searchFunc() {
+	char city[30];
+	cout << "请输入城市名称：" << endl;
+	cin >> city;
+	RecordPointer *rp = NULL;
+	if (city[0] >= '0' && city[0] <= '9') {
+		rp = mapById.find(city);
+	} else {
+		rp = map.find(city);
+	}
+	if (!rp) {
+		cout << "未检索到城市！" << endl;
+	}
+	cout << getRange(*rp);
+}
+
+bool cmpByDate(const AirQuality &a, const AirQuality &b) {
+	if (a.year < b.year) return true;
+	if (a.year > b.year) return false;
+	if (a.month < b.month) return true;
+	if (a.month > b.month) return false;
+	if (a.date < b.date) return true;
+	return false;
+}
+bool cmpByAqi(const AirQuality &a, const AirQuality &b) {
+	return a.aqi < b.aqi;
+}
+
+void sortFunc() {
+	SeqList<AirQuality> qualities_bk(qualities);
+	qualities_bk.sort(cmpByDate);
+	RecordPointer rp = getRange(RecordPointer(0, N - 1), &qualities_bk);
+	qualities_bk.sort(cmpByAqi, rp.start, rp.end + 1);
+	for (int i = rp.start; i <= min(rp.end, 20); ++i)
+		cout << qualities_bk[i];
 }
 
 int main() {
@@ -262,6 +282,7 @@ int main() {
 		case 2:
 			break;
 		case 3:
+			sortFunc();
 			break;
 		case 4:
 			return 0;
