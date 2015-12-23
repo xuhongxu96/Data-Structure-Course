@@ -100,6 +100,7 @@ void mapCities() {
 bool findItem(int left, int right, int year, int month, int date, int &index, SeqList<AirQuality> *list) {
 	if (!list) list = &qualities;
 	int l = left, r = right + 1;
+	//cout << year << ", " << month << ", " << date <<  endl;
 	while (l < r) {
 		int mid = (l + r) >> 1;
 		AirQuality q = (*list)[mid];
@@ -183,11 +184,27 @@ RecordPointer findItemsByWeek(int left, int right, int year, int week, int month
 	return RecordPointer(s, t);
 }
 
+RecordPointer getCity() {
+	char city[30];
+	cout << "请输入城市名称：" << endl;
+	cin >> city;
+	RecordPointer *rp = NULL;
+	if (city[0] >= '0' && city[0] <= '9') {
+		rp = mapById.find(city);
+	} else {
+		rp = map.find(city);
+	}
+	if (!rp) {
+		cout << "未检索到城市！" << endl;
+		return RecordPointer(0, -1);
+	}
+	return *rp;
+}
+
 RecordPointer getRange(RecordPointer rp, SeqList<AirQuality> *list = NULL) {
 	int method;
 	cout << "请选择检索方式：\n\t1) 日期\n\t2) 季度\n\t3) 周数" << endl;
 	cin >> method;
-
 
 	RecordPointer range;
 	switch (method) {
@@ -230,27 +247,16 @@ RecordPointer getRange(RecordPointer rp, SeqList<AirQuality> *list = NULL) {
 }
 
 void searchFunc() {
-	char city[30];
-	cout << "请输入城市名称：" << endl;
-	cin >> city;
-	RecordPointer *rp = NULL;
-	if (city[0] >= '0' && city[0] <= '9') {
-		rp = mapById.find(city);
-	} else {
-		rp = map.find(city);
-	}
-	if (!rp) {
-		cout << "未检索到城市！" << endl;
-	}
-	cout << getRange(*rp);
+	RecordPointer rp = getCity();
+	cout << getRange(rp);
 }
 
 bool cmpByDate(const AirQuality &a, const AirQuality &b) {
-	if (a.year < b.year) return true;
-	if (a.year > b.year) return false;
-	if (a.month < b.month) return true;
-	if (a.month > b.month) return false;
-	if (a.date < b.date) return true;
+	if (a.year > b.year) return true;
+	if (a.year < b.year) return false;
+	if (a.month > b.month) return true;
+	if (a.month < b.month) return false;
+	if (a.date > b.date) return true;
 	return false;
 }
 bool cmpByAqi(const AirQuality &a, const AirQuality &b) {
@@ -261,9 +267,44 @@ void sortFunc() {
 	SeqList<AirQuality> qualities_bk(qualities);
 	qualities_bk.sort(cmpByDate);
 	RecordPointer rp = getRange(RecordPointer(0, N - 1), &qualities_bk);
+	//cout << rp.start << " " << rp.end << endl;
 	qualities_bk.sort(cmpByAqi, rp.start, rp.end + 1);
-	for (int i = rp.start; i <= min(rp.end, 20); ++i)
+
+	cout << "榜单显示数量（输入0默认为20）：" << endl;
+	int ct;
+	cin >> ct;
+	if (ct == 0) ct = 20;
+	for (int i = rp.start; i <= min(rp.end, rp.start + ct - 1); ++i)
 		cout << qualities_bk[i];
+}
+
+void statFunc() {
+	RecordPointer rp = getCity();
+	RecordPointer range = getRange(rp);
+	int ct[6];
+	memset(ct, 0, sizeof(ct));
+	for (int i = range.start; i <= range.end; ++i) {
+		//cout << qualities[i].state;
+		if (strcmp(qualities[i].state, "优") == 0) {
+			++ct[0];
+		} else if (strcmp(qualities[i].state, "良") == 0) {
+			++ct[1];
+		} else if (strcmp(qualities[i].state, "轻微污染") == 0) {
+			++ct[2];
+		} else if (strcmp(qualities[i].state, "轻度污染") == 0) {
+			++ct[3];
+		} else if (strcmp(qualities[i].state, "重污染") == 0) {
+			++ct[4];
+		} else if (strcmp(qualities[i].state, "中度重污染") == 0) {
+			++ct[5];
+		} 
+	}
+	cout << "优：" << ct[0] << "天" << endl;
+	cout << "良：" << ct[1] << "天" << endl;
+	cout << "轻微污染：" << ct[2] << "天" << endl;
+	cout << "轻度污染：" << ct[3] << "天" << endl;
+	cout << "重污染：" << ct[4] << "天" << endl;
+	cout << "中度重污染：" << ct[5] << "天" << endl;
 }
 
 int main() {
@@ -280,6 +321,7 @@ int main() {
 			searchFunc();
 			break;
 		case 2:
+			statFunc();
 			break;
 		case 3:
 			sortFunc();
