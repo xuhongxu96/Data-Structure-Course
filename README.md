@@ -16,3 +16,11 @@ Homework
 4. Chapter 8 - Route Plan (Graph & Dijkstra)   
 	I also wrote a HashMap to map *City Name* to **Integer**.   
 	I also also added **Foreach** function to the ChainList.
+5. Chapter 7 & 9 - Air Quality Query    
+	Use HashMap to map **City Name** to **Record**, judge repetition and etc.   
+	Use SeqList to store all records.   
+	Use Dichotomy(二分法) to search for a range.   
+	Use STL Sort.  ```// Sorry for my laziness :(```
+
+# ALL FINISHED!!!
+Good Luck!
