@@ -7,6 +7,7 @@
 using namespace std;
 
 const int MONTH[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+const char STATE[6][30] = {"优", "良", "轻微污染", "轻度污染", "中度重污染", "重污染"};
 
 struct AirQuality {
 	char id[10];
@@ -111,32 +112,30 @@ bool findItem(int left, int right, int year, int month, int date, int &index, Se
 			r = mid;
 		} else if (q.year > year 
 				|| (q.year == year && (q.month > month 
-						|| (q.month == month && q.date > date)))) {
+						|| (q.month == month && q.date >= date)))) {
 			l = mid + 1;
-		} else {
-			index = mid;
-			return true;
 		}
 	}
 	index = l;
-	return false;
+	--index;
+	return ((*list)[index].year == year && (*list)[index].month == month && (*list)[index].date == date);
 }
 
 RecordPointer findItemsByDate(int left, int right, int year, int month = 0, int date = 0, SeqList<AirQuality> *list = NULL) {
 	int s, t;
 	if (month && date) {
-		if (findItem(left, right, year, month, date, s, list)) {
-			t = s;
-		} else {
-			s = 0; t = -1;
-			cout << "未检索到此天记录！" << endl;
-		}
+		if (!findItem(left, right, year, month, date, t, list))
+			return RecordPointer(0, -1);
+		if (findItem(left, right, year, month, date + 1, s, list))
+			++s;
 	} else if (month && !date) {
 		findItem(left, right, year, month, 1, t, list);
-		findItem(left, right, year, month, 31, s, list);
+		if (!findItem(left, right, year, month, 31, s, list))
+			++s;
 	} else {
 		findItem(left, right, year, 1, 1, t, list);
-		findItem(left, right, year, 12, 31, s, list);
+		if (!findItem(left, right, year, 12, 31, s, list))
+			++s;
 	}
 	return RecordPointer(s, t);
 }
@@ -147,7 +146,8 @@ RecordPointer findItemsBySeason(int left, int right, int year, int season, SeqLi
 	int monthStart = season * 3 - 2;
 	int monthEnd = season * 3;
 	findItem(left, right, year, monthStart, 1, t, list);
-	findItem(left, right, year, monthEnd, 31, s, list);
+	if (!findItem(left, right, year, monthEnd, 31, s, list))
+		++s;
 	return RecordPointer(s, t);
 }
 
@@ -172,14 +172,16 @@ RecordPointer findItemsByWeek(int left, int right, int year, int week, int month
 	int s, t;
 	if (month) {
 		findItem(left, right, year, month, week * 7 - 6, t, list);
-		findItem(left, right, year, month, week * 7, s, list);
+		if (!findItem(left, right, year, month, week * 7, s, list))
+			++s;
 	} else {
 		int dateStart = week * 7 - 6;
 		int monthStart = date2month(dateStart);
 		int dateEnd = week * 7;
 		int monthEnd = date2month(dateEnd);
 		findItem(left, right, year, monthStart, dateStart, t, list);
-		findItem(left, right, year, monthEnd, dateEnd, s, list);
+		if (!findItem(left, right, year, monthEnd, dateEnd, s, list))
+			++s;
 	}
 	return RecordPointer(s, t);
 }
@@ -270,10 +272,10 @@ void sortFunc() {
 	//cout << rp.start << " " << rp.end << endl;
 	qualities_bk.sort(cmpByAqi, rp.start, rp.end + 1);
 
-	cout << "榜单显示数量（输入0默认为20）：" << endl;
+	cout << "榜单显示数量（输入0默认为全部）：" << endl;
 	int ct;
 	cin >> ct;
-	if (ct == 0) ct = 20;
+	if (ct == 0) ct = N;
 	for (int i = rp.start; i <= min(rp.end, rp.start + ct - 1); ++i)
 		cout << qualities_bk[i];
 }
@@ -284,27 +286,34 @@ void statFunc() {
 	int ct[6];
 	memset(ct, 0, sizeof(ct));
 	for (int i = range.start; i <= range.end; ++i) {
-		//cout << qualities[i].state;
-		if (strcmp(qualities[i].state, "优") == 0) {
-			++ct[0];
-		} else if (strcmp(qualities[i].state, "良") == 0) {
-			++ct[1];
-		} else if (strcmp(qualities[i].state, "轻微污染") == 0) {
-			++ct[2];
-		} else if (strcmp(qualities[i].state, "轻度污染") == 0) {
-			++ct[3];
-		} else if (strcmp(qualities[i].state, "重污染") == 0) {
-			++ct[4];
-		} else if (strcmp(qualities[i].state, "中度重污染") == 0) {
-			++ct[5];
-		} 
+		for (int j = 0; j < 6; ++j) {
+			if (strcmp(qualities[i].state, STATE[j]) == 0) 
+				++ct[j];
+		}
 	}
-	cout << "优：" << ct[0] << "天" << endl;
-	cout << "良：" << ct[1] << "天" << endl;
-	cout << "轻微污染：" << ct[2] << "天" << endl;
-	cout << "轻度污染：" << ct[3] << "天" << endl;
-	cout << "重污染：" << ct[4] << "天" << endl;
-	cout << "中度重污染：" << ct[5] << "天" << endl;
+	for (int i = 0; i < 6; ++i) {
+		cout << STATE[i] << ct[i] << "天" << endl;
+	}
+}
+
+void outputCity(const char *const &k, const char &v) {
+	cout << k << endl;
+}
+
+void siftFunc() {
+	int state;
+	SeqList<AirQuality> qualities_bk(qualities);
+	qualities_bk.sort(cmpByDate);
+	RecordPointer rp = getRange(RecordPointer(0, N - 1), &qualities_bk);
+	cout << "筛选空气状况：\n\t1) 优\n\t2) 良\n\t3) 轻微污染\n\t4) 轻度污染\n\t5) 中度重污染\n\t6) 重污染" << endl;
+	cin >> state;
+	--state;
+	HashMap<const char *, char> city(hashf, equalf, 131, 300);
+	for (int i = rp.start; i <= rp.end; ++i) {
+		if (strcmp(qualities_bk[i].state, STATE[state]) == 0)
+			city.insert(qualities_bk[i].city, 1);
+	}
+	city.foreach(outputCity);
 }
 
 int main() {
@@ -314,20 +323,23 @@ int main() {
 
 	while (1) {
 		int method;
-		cout << "请选择功能：\n\t1) 检索\n\t2) 统计\n\t3) 排序\n\t4) 退出" << endl;
+		cout << "请选择功能：\n\t1) 检索\n\t2) 统计\n\t3) 排序\n\t4) 筛选\n\t5) 退出" << endl;
 		cin >> method;
 		switch (method) {
-		case 1:
-			searchFunc();
-			break;
-		case 2:
-			statFunc();
-			break;
-		case 3:
-			sortFunc();
-			break;
-		case 4:
-			return 0;
+			case 1:
+				searchFunc();
+				break;
+			case 2:
+				statFunc();
+				break;
+			case 3:
+				sortFunc();
+				break;
+			case 4:
+				siftFunc();
+				break;
+			case 5:
+				return 0;
 		}
 	}
 	return 0;

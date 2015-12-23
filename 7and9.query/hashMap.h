@@ -90,6 +90,16 @@ public:
 		}
 		return true;
 	}
+	void foreach(void (*callback)(const E &k, const K&v), int level = 0) {
+		if (isValue) {
+			callback(key, value);
+		}
+		for (int i = 0; i < size; ++i) {
+			if (table[i]) {
+				table[i]->foreach(callback, level + 1);
+			}
+		}
+	}
 	int dfs(int level = 0) {
 		if (isValue) {
 			std::cout << "level: " << level << " -- "<< key << ": " << value << std::endl;
