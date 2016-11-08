@@ -33,17 +33,17 @@ template <class T>
 class HuffmanTree {
 public:
 	HuffmanTree(T w[], int n) {
-		MinHeap<HuffmanNode<T> > heap(n * n);
+		MinHeap<HuffmanNode<T> *> heap(n * n);
 		for (int i = 0; i < n; ++i) {
-			heap.insert(HuffmanNode<T>(w[i]));
+			heap.insert(new HuffmanNode<T>(w[i]));
 		}
 		for (int i = 0; i < n - 1; ++i) {
-			HuffmanNode<T> *p1 = new HuffmanNode<T>, *p2 = new HuffmanNode<T>;
-			heap.removeMin(*p1);
-			heap.removeMin(*p2);
+			HuffmanNode<T> *p1, *p2;
+			heap.removeMin(p1);
+			heap.removeMin(p2);
 			HuffmanNode<T> *p = new HuffmanNode<T>(p1->data + p2->data, p1, p2);
 			p1->parent = p2->parent = p;
-			heap.insert(*p);
+			heap.insert(p);
 			root = p;
 		}
 	}
@@ -59,11 +59,11 @@ public:
 		return o;
 	}
 
-	void getCode(void (*callback)(char, int)) {
+	void getCode(void(*callback)(char, int)) {
 		dfs(root, callback);
 	}
 
-	void dfs(HuffmanNode<T> *n, void (*callback)(char, int), int level = 1) {
+	void dfs(HuffmanNode<T> *n, void(*callback)(char, int), int level = 1) {
 		if (!n) return;
 		if (!n->left && !n->right) {
 			callback(n->data.ch, level);
@@ -79,7 +79,8 @@ public:
 		for (int i = 0; i < l; ++i) {
 			if (str[i] == '1') {
 				p = p->right;
-			} else {
+			}
+			else {
 				p = p->left;
 			}
 			if (p->data.ch != '!') {
