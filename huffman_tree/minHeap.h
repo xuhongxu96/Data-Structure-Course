@@ -42,7 +42,7 @@ public:
 	~MinHeap() {
 		delete [] data;
 	}
-	MinHeap(int sz = DEFAULT_SIZE) : size(sz) {
+	MinHeap(int sz = DEFAULT_SIZE) : size(0) {
 		data = new T[sz];
 	}
 
@@ -62,7 +62,6 @@ public:
 	}
 	void removeMin(T &x) {
 		x = data[0];
-		data[0] = data[--size];
 		data[0] = data[--size];
 		shiftDown(0, size - 1);
 	}
