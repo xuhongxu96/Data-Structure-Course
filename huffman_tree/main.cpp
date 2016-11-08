@@ -1,61 +1,109 @@
+#pragma once
+#include "minHeap.h"
 #include <iostream>
-#include "huffmanTree.h"
-using namespace std;
+#include <cstring>
 
-struct Character {
-	char ch;
-	int w;
-	Character() : ch('!'), w(100000) {}
-	Character(char c, int v) : ch(c), w(v) {}
-	Character(const Character &c) : ch(c.ch), w(c.w) {}
-	bool operator >= (Character &t) {
-		return w >= t.w;
+
+template <class T>
+struct HuffmanNode {
+	T data;
+
+	HuffmanNode *left, *right, *parent;
+	HuffmanNode() : left(NULL), right(NULL), parent(NULL) {}
+	HuffmanNode(T v, HuffmanNode *l = NULL, HuffmanNode *r = NULL, HuffmanNode *p = NULL) : left(l), right(r), parent(p), data(v) {}
+	bool operator >= (HuffmanNode &t) {
+		return data >= t.data;
 	}
-	bool operator <= (Character &t) {
-		return w <= t.w;
+	bool operator <= (HuffmanNode &t) {
+		return data <= t.data;
 	}
-	bool operator > (Character &t) {
-		return w > t.w;
+	bool operator > (HuffmanNode &t) {
+		return data > t.data;
 	}
-	bool operator < (Character &t) {
-		return w < t.w;
+	bool operator < (HuffmanNode &t) {
+		return data < t.data;
 	}
-	Character operator + (const Character &t) {
-		Character ch('!', t.w + w);
-		return ch;
-	}
-	friend ostream &operator << (ostream &o, Character &c) {
-		o << c.ch << ":" << c.w;
+	friend std::ostream &operator << (std::ostream &o, HuffmanNode &n) {
+		o << n.data;
 		return o;
 	}
 };
 
-Character ch[5];
-
-void getCode(char ch, int code) {
-	char t[50];
-	char tt[50];
-	int i = 0;
-	while(code) {
-		t[i++] = '0' + (code & 1);
-		code >>= 1;
+template <class T>
+class HuffmanTree {
+public:
+	HuffmanTree(T w[], int n) {
+		MinHeap<HuffmanNode<T> *> heap(n * n);
+		for (int i = 0; i < n; ++i) {
+			heap.insert(new HuffmanNode<T>(w[i]));
+		}
+		for (int i = 0; i < n - 1; ++i) {
+			HuffmanNode<T> *p1, *p2;
+			heap.removeMin(p1);
+			heap.removeMin(p2);
+			HuffmanNode<T> *p = new HuffmanNode<T>(p1->data + p2->data, p1, p2);
+			p1->parent = p2->parent = p;
+			heap.insert(p);
+			root = p;
+		}
 	}
-	t[i - 1] = '\0';
-	for (int j = i - 2; j >= 0; --j)
-		tt[i - 2 - j] = t[j];
-	tt[i - 1] = '\0';
-	cout << ch << ":" << tt << endl;
-}
+	~HuffmanTree() {
+		deleteTree(root);
+	}
+	double getLength() {
+		return root->data;
+	}
 
-int main() {
-	ch[0].ch = 'a'; ch[0].w = 4;
-	ch[1].ch = 'b'; ch[1].w = 7;
-	ch[2].ch = 'c'; ch[2].w = 5;
-	ch[3].ch = 'd'; ch[3].w = 2;
-	ch[4].ch = 'e'; ch[4].w = 9;
-	HuffmanTree<Character> tree(ch, 5);
-	cout << tree;
-	tree.getCode(getCode);
-	tree.decode(cout, "1100011100010101");
-	return 0;
-}
+	friend std::ostream &operator << (std::ostream &o, HuffmanTree &t) {
+		t.dfs(o, t.root);
+		return o;
+	}
+
+	void getCode(void(*callback)(char, int)) {
+		dfs(root, callback);
+	}
+
+	void dfs(HuffmanNode<T> *n, void(*callback)(char, int), int level = 1) {
+		if (!n) return;
+		if (!n->left && !n->right) {
+			callback(n->data.ch, level);
+			return;
+		}
+		level <<= 1;
+		dfs(n->left, callback, level);
+		dfs(n->right, callback, level | 1);
+	}
+	void decode(std::ostream &o, const char *str) {
+		HuffmanNode<T> *p = root;
+		int l = strlen(str);
+		for (int i = 0; i < l; ++i) {
+			if (str[i] == '1') {
+				p = p->right;
+			}
+			else {
+				p = p->left;
+			}
+			if (p->data.ch != '!') {
+				o << p->data.ch;
+				p = root;
+			}
+		}
+	}
+
+
+protected:
+	HuffmanNode<T> *root;
+	void deleteTree(HuffmanNode<T> *t) {
+		if (!t) return;
+		deleteTree(t->left);
+		deleteTree(t->right);
+	}
+	void dfs(std::ostream &o, HuffmanNode<T> *n, int level = 0) {
+		if (!n) return;
+		o.width(level * 6);
+		o << *n << std::endl;
+		dfs(o, n->left, level + 1);
+		dfs(o, n->right, level + 1);
+	}
+
+};
