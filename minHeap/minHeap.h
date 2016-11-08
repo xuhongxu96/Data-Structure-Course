@@ -42,7 +42,7 @@ public:
 	~MinHeap() {
 		delete [] data;
 	}
-	MinHeap(int sz = DEFAULT_SIZE) : size(sz) {
+	MinHeap(int sz = DEFAULT_SIZE) : size(0) {
 		data = new T[sz];
 	}
 
