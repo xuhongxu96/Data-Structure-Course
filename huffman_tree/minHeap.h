@@ -4,16 +4,17 @@
 
 #define DEFAULT_SIZE  10
 
-template <class T>
+template <class T, class C>
 class MinHeap {
 	T *data;
 	int size;
 	void shiftDown(int start, int m) {
 		int j = start * 2 + 1;
 		T temp = data[start];
+		C cmp;
 		while (j <= m) {
-			if (j < m && data[j] > data[j + 1]) ++j;
-			if (temp <= data[j]) break;
+			if (j < m && cmp(data[j + 1], data[j])) ++j;
+			if (!cmp(data[j], temp)) break;
 			data[start] = data[j];
 			start = j;
 			j = j * 2 + 1;
@@ -23,8 +24,9 @@ class MinHeap {
 	void shiftUp(int start) {
 		int i = (start - 1) / 2;
 		T temp = data[start];
+		C cmp;
 		while (start > 0) {
-			if (temp >= data[i]) break;
+			if (!cmp(temp, data[i])) break;
 			data[start] = data[i];
 			start = i;
 			i = (i - 1) / 2;
@@ -71,7 +73,7 @@ public:
 	void empty() {
 		size = 0;
 	}
-	friend std::ostream &operator <<(std::ostream &o, MinHeap<T> &heap) {
+	friend std::ostream &operator <<(std::ostream &o, MinHeap<T, C> &heap) {
 		heap.dfs(o, 0);
 		return o;
 	}
