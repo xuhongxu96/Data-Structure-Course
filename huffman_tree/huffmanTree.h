@@ -27,16 +27,29 @@ struct HuffmanNode {
 		o << n.data;
 		return o;
 	}
+	friend std::ostream &operator << (std::ostream &o, HuffmanNode *&n) {
+		o << n->data;
+		return o;
+	}
+};
+
+template<class T>
+class CmpPointer {
+public:
+	bool operator ()(T *a, T *b) {
+		return *a < *b;
+	}
 };
 
 template <class T>
 class HuffmanTree {
 public:
 	HuffmanTree(T w[], int n) {
-		MinHeap<HuffmanNode<T> *> heap(n * n);
+		MinHeap<HuffmanNode<T> *, CmpPointer<HuffmanNode<T>>> heap(n * n);
 		for (int i = 0; i < n; ++i) {
 			heap.insert(new HuffmanNode<T>(w[i]));
 		}
+		
 		for (int i = 0; i < n - 1; ++i) {
 			HuffmanNode<T> *p1, *p2;
 			heap.removeMin(p1);
