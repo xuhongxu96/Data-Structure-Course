@@ -11,15 +11,6 @@ struct HuffmanNode {
 	HuffmanNode *left, *right, *parent;
 	HuffmanNode() : left(NULL), right(NULL), parent(NULL) {}
 	HuffmanNode(T v, HuffmanNode *l = NULL, HuffmanNode *r = NULL, HuffmanNode *p = NULL) : left(l), right(r), parent(p), data(v) {}
-	bool operator >= (HuffmanNode &t) {
-		return data >= t.data;
-	}
-	bool operator <= (HuffmanNode &t) {
-		return data <= t.data;
-	}
-	bool operator > (HuffmanNode &t) {
-		return data > t.data;
-	}
 	bool operator < (HuffmanNode &t) {
 		return data < t.data;
 	}
